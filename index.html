@@ -1,0 +1,194 @@
+<!DOCTYPE html><html><head><title>Speedlunker (copy)</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui=1"><meta charset="UTF-8"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="description" content=""><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" href="icon64.png"><link rel="apple-touch-icon" sizes="180x180" href="icon180.png"><link rel="icon" type="image/png" sizes="32x32" href="icon32.png"><link rel="icon" type="image/png" sizes="16x16" href="icon16.png"><style>html,body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  overflow:hidden;
+  font-family: Verdana;
+}
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+#canvaswrapper {
+  text-align: center ;
+}
+</style><style>@font-face { font-family: "BitCell" ; src: url("fonts/BitCell.ttf") format("truetype"); }</style><script>window.fonts = ["BitCell"]</script></head><body class="noselect custom-cursor" oncontextmenu="return false;"><div id="canvaswrapper"></div><script type="text/javascript">var resources = {"images":[{"file":"blade.png","version":1,"size":507,"properties":{}},{"file":"blade2.png","version":1,"size":524,"properties":{}},{"file":"hero.png","version":1,"size":3450,"properties":{}},{"file":"icon.png","version":18,"size":198,"properties":{"frames":1,"fps":5}},{"file":"icon2.png","version":2,"size":700,"properties":{"frames":1,"fps":5}},{"file":"wall.png","version":1,"size":497,"properties":{}}],"assets":[],"maps":{},"sounds":[],"music":[{"file":"bensoundgoinghigher.mp3","version":1,"size":3423450,"properties":{}}]};
+var graphics = "M1";
+
+</script><script type="text/javascript">var orientation = 'any' ;
+var aspect = 'free' ;
+var ms_libs = [] ;
+window.skip_service_worker = true;
+window.exported_project = true;
+window.ms_use_server = false ;
+</script><script src="compiler.js"></script><script src="parser.js"></script><script src="processor.js"></script><script src="program.js"></script><script src="routine.js"></script><script src="runner.js"></script><script src="token.js"></script><script src="tokenizer.js"></script><script src="transpiler.js"></script><script src="microengine.js"></script></body><script type="text/javascript">//
+//
+// The game is started with the code below.
+// Once you have received the "started" signal (see below),
+// you can do the following:
+// 1) Inject functions or objects into the global context of the microStudio engine, example:
+//
+//   window.player.setGlobal("special_callback",function(x) { console.info(x) }) ;
+//   // Your microScript code can now call the "special_callback" function
+//
+// 2) Call microScript global functions from your JavaScript code, example:
+//
+//   window.player.call("call_me_from_javascript",[10,1000]) ;
+//   // arguments to the function call are provided as an array
+//
+// 3) Run a microScript code snippet from your JavaScript code, example:
+//
+//   window.player.exec("player.position_x = 50",function(result) { console.log(result) ; }) ;
+//
+
+window.addEventListener("load",function() {
+  window.player = new Player(function(event) {
+    if (event.name == "started") {
+      // signal that the game is started
+    }
+    else if (event.name == "log") {
+      // console.info(event.data) ;
+    }
+  }) ;
+  document.body.focus() ;
+}) ;
+
+</script><script id="code" type="text/x-microscript">
+
+
+function()
+init = function()
+  blades = [200,300,400]
+  blades2 = [100,200,300,400,500]
+  passed = [0,0,0]
+  gameover = 0
+  score = 0
+  highScore=storage.get("hs")
+  position = 0  
+  speed = 1.5
+  started = false
+
+end
+
+
+update = function()
+  
+  if gameover>0 then
+    gameover = gameover+1
+    if gameover>300 then init() end
+  else
+    if started then
+      my_music = audio.playMusic("bensoundgoinghigher")
+      my_music.setVolume(0.5)
+    end
+    position = position + speed
+    if started then
+      speed = speed + 0.001
+    end
+
+    if keyboard.press.S then
+      if started == false then
+        started = true
+      end
+    end
+    
+    if keyboard.press.Q then
+      system.exit()
+      end
+    
+    if keyboard.press.SPACE and hero_y == 0 then
+      hero_vy = 7
+    end
+    
+    if keyboard.press.SPACE and hero_y > 0 and hero_y < 60  then
+      hero_vy = 2 
+    end
+      
+  
+    hero_vy -= 0.3
+    hero_y = max(0,hero_y+hero_vy)
+  
+    for i=0 to blades.length-1
+      if blades[i]<position-120 then
+        blades[i] = position+280+random.next()*200   
+        passed[i] = 0
+      end
+      if abs(position-blades[i])<10 and started then
+        if hero_y<10 then
+          my_music.stop()
+          gameover = 1
+          started = false
+        elsif not passed[i] then
+          passed[i] = 1
+          score += 1
+          if score > highscore then
+            highscore = score
+            storage.set("hs",highScore)
+          end
+          audio.beep("saw tempo 1000 volume 30 span 20 C6")
+        end
+      end
+    end
+     
+    for i=0 to blades2.length-1
+      if blades2[i]<position-120 then
+        blades2[i] = position+280+random.next()*200
+        passed[i] = 0
+      end
+      if abs(position-blades2[i])<10 and started then
+        if hero_y>80 then
+          my_music.stop()
+          gameover = 1
+          started = false
+        end
+      end
+    end
+  end
+  
+end
+
+draw = function()
+  screen.fillRect(0,0,screen.width,screen.height,"rgb(23,70,0)")
+
+  for i=-6 to 6 by 1
+    screen.drawSprite("wall",i*40-position%40,-80,40)
+  end
+  
+  for i=-6 to 6 by 1
+    screen.drawSprite("wall",i*40-position%40,80,40)
+  end
+  
+  screen.drawSprite("hero",-80,-50+hero_y,20)
+  
+  for i=0 to blades.length-1
+    screen.drawSprite("blade",blades[i]-position-80,-50,20)
+  end
+  for i=0 to blades2.length-1
+    screen.drawSprite("blade2",blades2[i]-position-60,50,20)
+  end
+  //instructions
+  screen.drawText("Press Space to Jump",-120,95,12,"#FF4")
+  screen.drawText("Press S to Start",-120,85,12,"#FF4")
+  screen.drawText("Press Q to Quit",-120,75,12,"#FF4")
+  //score
+  screen.drawText("Score: " + score,120,90,18,"#F00")
+  screen.drawText("High Score: " + highscore,120,75,18,"#bf0")
+  //title
+  screen.drawText("Speedlunker",0,-70,25,"#FFF")
+  screen.drawText("by Groeneveld",0,-85,10,"#Fa5")
+  if gameover then
+    screen.fillRect(0,0,screen.width,screen.height,"rgba(255,0,0,.5)")
+    screen.drawText("GAME OVER",0,0,40,"#FFF")
+    screen.drawText("Restarts in 5 seconds",0,-20,20,"#FFF")
+  end
+
+end
+
+end()
+
+
+</script></html>
